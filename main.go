@@ -1,5 +1,7 @@
 package main
 
+// Example app from bubbletea tutorial
+
 import (
 	"fmt"
 	"io"
