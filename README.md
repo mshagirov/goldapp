@@ -1,3 +1,3 @@
-# goldapp : go LDAP App
+# goldap : go LDAP application
 
 > LDAP TUI in go
