@@ -4,6 +4,7 @@
 
 ## LDAP
 
+- [LDAP tutorial](https://www.zytrax.com/books/ldap/)
 - [LDAP in Go](https://cybernetist.com/2020/05/18/getting-started-with-go-ldap/)
 - go-ldap:
   - [repo](https://github.com/go-ldap/ldap)
