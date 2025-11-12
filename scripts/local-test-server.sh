@@ -26,6 +26,19 @@ if [ -z "$RUNNING_CONTAINERS" ]; then
     -e LDAP_ADMIN_PASSWORD="${LDAP_ADMIN_PASSWORD}" \
     -e LDAP_TLS_VERIFY_CLIENT="never" \
     docker.io/osixia/openldap:1.5.0
+
+  sleep 5
+  
+  SOURCE_PATH="$( dirname ${BASH_SOURCE[0]} )"
+  ldapadd -H $LDAP_URL \
+    -D $LDAP_ADMIN_DN \
+    -w $LDAP_ADMIN_PASSWORD \
+    -f ${SOURCE_PATH}/0-ous.ldif
+
+  ldapadd -H $LDAP_URL \
+    -D $LDAP_ADMIN_DN \
+    -w $LDAP_ADMIN_PASSWORD \
+    -f ${SOURCE_PATH}/1-uids.ldif
 else
     echo $CONTAINER_NAME already running ...
     echo ""
@@ -33,9 +46,8 @@ fi
 
 $APP ps --latest
 
-ldapsearch -H ldap://127.0.0.1:389 \
+ldapsearch -H $LDAP_URL \
   -x \
   -b $LDAP_BASE_DN \
   -D $LDAP_ADMIN_DN \
   -w $LDAP_ADMIN_PASSWORD
-

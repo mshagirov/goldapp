@@ -6,23 +6,25 @@ ou: People
 dn: ou=Group,dc=goldap,dc=sh
 objectClass: top
 objectClass: organizationalUnit
+description: User groups
 ou: Group
 
-dn: ou=Devs,dc=goldap,dc=sh
+dn: ou=Devs,ou=People,dc=goldap,dc=sh
 objectClass: top
 objectClass: organizationalUnit
+description: All developers
 ou: Devs
 
-# test Group 1
+# test POSIX Group 1
 dn: cn=Managers,ou=Group,dc=goldap,dc=sh
 changetype: add
 cn: Managers
 objectClass: top
 objectClass: posixGroup
-description: Managers posix group
+description: POSIX group for managers
 gidNumber: 100
 
-# test Group 2
+# test POSIX Group 2
 dn: cn=Users,ou=Group,dc=goldap,dc=sh
 changetype: add
 cn: Users

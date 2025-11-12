@@ -1,39 +1,50 @@
-# test user 1
-dn: uid=aburgers,ou=Devs,ou=People,dc=example,dc=com
+# test POSIX user 1
+dn: uid=aburgers,ou=Devs,ou=People,dc=goldap,dc=sh
 changetype: add
-objectClass: top
+objectClass: posixAccount
 objectClass: inetOrgPerson
+objectClass: top
+employeeType: Full-time
+cn: Allison Burgers
 description: Allison Burgers. Allison is the project
   manager of the Dev team.
-cn: Allison Burgers
-employeeType: Full-time
+givenName: Allison
 sn: Burgers
-uid: aburgers
 uidNumber: 100
 gidNumber: 100
+homeDirectory: /home/aburgers
+uid: aburgers
 
-# test user 2
-dn: uid=jsmith1,ou=Devs,ou=People,dc=example,dc=com
+# test POSIX user 2
+dn: uid=jsmith1,ou=Devs,ou=People,dc=goldap,dc=sh
 changetype: add
+objectClass: posixAccount
 objectClass: inetOrgPerson
-description: John Smith from Dev.  John is a software
-  developer.
-cn: John Smith
+objectClass: top
 employeeType: Full-time
+cn: John Smith
+description: John Smith from Dev. John is a software
+  developer.
+givenName: John
 sn: Smith
+uidNumber: 1000
+gidNumber: 1000
+homeDirectory: /home/jsmith1
 uid: jsmith1
-uidNumber: 1000
-gidNumber: 1000
 
-# test user 3
-dn: uid=jbourne,ou=Devs,ou=People,dc=example,dc=com
+# test POSIX user 3
+dn: uid=jbourne,ou=Devs,ou=People,dc=goldap,dc=sh
 changetype: add
+objectClass: posixAccount
 objectClass: inetOrgPerson
-description: Jason Bourne from Dev team.  Jason is an intern.
+objectClass: top
+employeeType: Full-time
 cn: Jason Bourne
-employeeType: Intern
+description: Jason Bourne from Dev team.  Jason is a software
+  engineer. He could be a spy ... we don't really know.
+givenName: Jason
 sn: Bourne
-uid: jbourne
 uidNumber: 1000
 gidNumber: 1000
-
+homeDirectory: /home/jbourne
+uid: jbourne
