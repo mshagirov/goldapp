@@ -1,4 +1,4 @@
-package main
+package tui
 
 import (
 	"fmt"
@@ -12,9 +12,9 @@ type model struct {
 	selected map[int]struct{}
 }
 
-func initialModel() model {
+func initialModel(listOfChoices []string) model {
 	return model{
-		choices: []string{"Buy carrots", "Buy celery", "Buy kohlrabi"},
+		choices: listOfChoices,
 
 		// A map which indicates which choices are selected. We're using
 		// the map like a mathematical set. The keys refer to the indexes
@@ -23,8 +23,8 @@ func initialModel() model {
 	}
 }
 
-func NewInitialModel() *tea.Program {
-	p := tea.NewProgram(initialModel())
+func NewInitialModel(listOfChoices []string) *tea.Program {
+	p := tea.NewProgram(initialModel(listOfChoices))
 	return p
 }
 

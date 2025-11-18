@@ -1,7 +1,7 @@
 package ldap
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/go-ldap/ldap/v3"
 )
@@ -9,14 +9,12 @@ import (
 func Search(url, adminDN, adminPassword, baseDN, filter string) (*ldap.SearchResult, error) {
 	l, err := ldap.DialURL(url)
 	if err != nil {
-		log.Printf("Encountered %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("ldap.Search DialURL; %v", err)
 	}
 	defer l.Close()
 
 	if err := l.Bind(adminDN, adminPassword); err != nil {
-		log.Printf("Encountered %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("ldap.Search Bind; %v", err)
 	}
 
 	searchRequest := ldap.NewSearchRequest(
@@ -30,8 +28,7 @@ func Search(url, adminDN, adminPassword, baseDN, filter string) (*ldap.SearchRes
 
 	res, err := l.Search(searchRequest)
 	if err != nil {
-		log.Printf("Encountered %v\n", err)
-		return nil, err
+		return nil, fmt.Errorf("ldap.Search Search; %v", err)
 	}
 
 	return res, err
