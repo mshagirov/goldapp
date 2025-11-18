@@ -8,24 +8,25 @@ import (
 
 type model struct {
 	cursor   int
-	choices  []string
-	selected map[int]struct{}
+	Choices  []string
+	Selected map[int]struct{}
 }
 
 func initialModel(listOfChoices []string) model {
 	return model{
-		choices: listOfChoices,
+		Choices: listOfChoices,
 
 		// A map which indicates which choices are selected. We're using
 		// the map like a mathematical set. The keys refer to the indexes
 		// of the `choices` slice, above.
-		selected: make(map[int]struct{}),
+		Selected: make(map[int]struct{}),
 	}
 }
 
-func NewInitialModel(listOfChoices []string) *tea.Program {
-	p := tea.NewProgram(initialModel(listOfChoices))
-	return p
+func NewInitialModel(listOfChoices []string) (*tea.Program, model) {
+	m := initialModel(listOfChoices)
+	p := tea.NewProgram(m)
+	return p, m
 }
 
 func (m model) Init() tea.Cmd {
@@ -37,10 +38,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
-
-			for k := range m.selected {
-				fmt.Printf("%s\n", m.choices[k])
-			}
 			// fmt.Println("Bye!")
 			return m, tea.Quit
 		case "up", "k":
@@ -48,15 +45,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor--
 			}
 		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
+			if m.cursor < len(m.Choices)-1 {
 				m.cursor++
 			}
 		case "enter", " ":
-			_, ok := m.selected[m.cursor]
+			_, ok := m.Selected[m.cursor]
 			if ok {
-				delete(m.selected, m.cursor)
+				delete(m.Selected, m.cursor)
 			} else {
-				m.selected[m.cursor] = struct{}{}
+				m.Selected[m.cursor] = struct{}{}
 			}
 		}
 	}
@@ -65,16 +62,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := "What should we buy at the market?\n\n"
+	s := "Choices:\n\n"
 
-	for i, choice := range m.choices {
+	for i, choice := range m.Choices {
 		cursor := " "
 		if m.cursor == i {
 			cursor = ">"
 		}
 
 		checked := " "
-		if _, ok := m.selected[i]; ok {
+		if _, ok := m.Selected[i]; ok {
 			checked = "x"
 		}
 

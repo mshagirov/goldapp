@@ -34,16 +34,20 @@ func main() {
 
 	choices := []string{}
 	for _, entry := range sr.Entries {
-		fmt.Printf("\n%s\n", entry.DN)
 		choices = append(choices, entry.DN)
-		for _, attr := range entry.Attributes {
-			fmt.Printf(" |-- %v: %v\n", attr.Name, attr.Values)
-		}
 	}
 
-	p := tui.NewInitialModel(choices)
+	p, m := tui.NewInitialModel(choices)
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
+	}
+
+	for selected := range m.Selected {
+		fmt.Println(m.Choices[selected])
+		for _, attr := range sr.Entries[selected].Attributes {
+			fmt.Printf("  |-- %v: %v\n", attr.Name, attr.Values)
+		}
+
 	}
 }
