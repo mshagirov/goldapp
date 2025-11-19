@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/mshagirov/goldap/internal/config"
-	"github.com/mshagirov/goldap/internal/ldap"
 	"github.com/mshagirov/goldap/internal/tui"
 )
 
@@ -16,17 +15,15 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%#v\n", ldapConfig)
+	ldap := config.LdapApi{
+		Config: &ldapConfig,
+		Secret: "admin123",
+	}
 
 	filter := "(objectClass=*)" // all classes
 	// filter := fmt.Sprintf("(uid=%s)", "jbourne") // find user
 
-	sr, err := ldap.Search(
-		ldapConfig.LdapUrl,
-		ldapConfig.LdapAdminDn, "admin123",
-		ldapConfig.LdapBaseDn,
-		filter,
-	)
+	sr, err := ldap.Search(filter)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -44,9 +41,9 @@ func main() {
 	}
 
 	for selected := range m.Selected {
-		fmt.Println(m.Choices[selected])
+		fmt.Println("dn:", m.Choices[selected])
 		for _, attr := range sr.Entries[selected].Attributes {
-			fmt.Printf("  |-- %v: %v\n", attr.Name, attr.Values)
+			fmt.Printf("    |-- %v: %v\n", attr.Name, attr.Values)
 		}
 
 	}
