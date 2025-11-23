@@ -70,17 +70,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "esc":
 			return m, tea.Quit
 
-		// Set focus to next input
 		case "tab", "shift+tab", "enter", "up", "down":
 			s := msg.String()
 
-			// Did the user press enter while the submit button was focused?
-			// If so, exit.
 			if s == "enter" && m.focusIndex == len(m.inputs) {
 				return m, tea.Quit
 			}
 
-			// Cycle indexes
 			if s == "up" || s == "shift+tab" {
 				m.focusIndex--
 			} else {
@@ -96,13 +92,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds := make([]tea.Cmd, len(m.inputs))
 			for i := 0; i <= len(m.inputs)-1; i++ {
 				if i == m.focusIndex {
-					// Set focused state
 					cmds[i] = m.inputs[i].Focus()
 					m.inputs[i].PromptStyle = focusedStyle
 					m.inputs[i].TextStyle = focusedStyle
 					continue
 				}
-				// Remove focused state
 				m.inputs[i].Blur()
 				m.inputs[i].PromptStyle = noStyle
 				m.inputs[i].TextStyle = noStyle
@@ -112,7 +106,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	// Handle character input and blinking
 	cmd := m.updateInputs(msg)
 
 	return m, cmd
@@ -121,8 +114,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
-	// Only text inputs with Focus() set will respond, so it's safe to simply
-	// update all of them here without any further logic.
 	for i := range m.inputs {
 		m.inputs[i], cmds[i] = m.inputs[i].Update(msg)
 	}
