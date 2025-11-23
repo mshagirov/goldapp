@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/mshagirov/goldap/internal/config"
-	"github.com/mshagirov/goldap/login"
+	"github.com/mshagirov/goldap/internal/login"
 )
 
 func main() {
