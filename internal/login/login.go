@@ -10,10 +10,12 @@ import (
 )
 
 var (
-	focusedStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("205")).PaddingTop(2).PaddingLeft(4)
-	blurredStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("240")).PaddingLeft(4)
+	focusedColor = lipgloss.Color("215")
+	blurredColor = lipgloss.Color("241")
+	focusedStyle = lipgloss.NewStyle().Foreground(focusedColor).
+			PaddingTop(2).PaddingLeft(4)
+	blurredStyle = lipgloss.NewStyle().Foreground(blurredColor).
+			PaddingLeft(4)
 
 	cursorStyle        = focusedStyle
 	noStyle            = lipgloss.NewStyle().PaddingTop(2).PaddingLeft(4)
@@ -23,12 +25,10 @@ var (
 	helpText    string = `(press esc or ctrl+c to exit)`
 
 	focusedButton = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("205")).PaddingLeft(4).
+			Foreground(focusedColor).PaddingLeft(4).
 			Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("%s",
-		lipgloss.NewStyle().Foreground(
-			lipgloss.Color("240")).PaddingLeft(4).
-			Render("[ Submit ]"))
+	blurredButton = fmt.Sprintf("%s", lipgloss.NewStyle().Foreground(blurredColor).
+			PaddingLeft(4).Render("[ Submit ]"))
 )
 
 type model struct {
