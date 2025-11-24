@@ -29,6 +29,8 @@ func main() {
 	}
 
 	filter := "(objectClass=*)" // all classes
+	// filter := "(objectClass=PosixGroup)" // all PosixGroups
+	// filter := "(uid=*)" // all ldap users
 	// filter := fmt.Sprintf("(uid=%s)", "jbourne") // find user
 
 	sr, err := ldap.Search(filter)
