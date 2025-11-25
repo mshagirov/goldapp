@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	focusedColor = lipgloss.Color("215")
+	focusedColor = lipgloss.AdaptiveColor{Light: "#DAA520", Dark: "#FFD700"} //lipgloss.Color("215")
 	blurredColor = lipgloss.Color("241")
 	focusedStyle = lipgloss.NewStyle().Foreground(focusedColor).
 			PaddingTop(2).PaddingLeft(4)
