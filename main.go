@@ -46,4 +46,9 @@ func main() {
 		}
 	}
 
+	runTabs(
+		[]string{"Users", "Groups", "Orgs"},
+		[]string{"User1, user2,...", "group1, group2,...", "Managers, Devs"},
+	)
+
 }
