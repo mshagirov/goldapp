@@ -2,6 +2,22 @@
 
 > LDAP TUI in go
 
+## TUI
+
+```
+Ldap info config etc.
+
+[tab_i]:tab/shift+tab{
+
+[table]:j/k/up/down{
+content
+}
+}
+
+tab_i \in {user, group, ou}
+
+```
+
 ## LDAP
 
 - [LDAP tutorial](https://www.zytrax.com/books/ldap/)
