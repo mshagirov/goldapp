@@ -7,7 +7,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	// "golang.org/x/term"
 )
 
 type model struct {
@@ -58,6 +57,7 @@ var (
 )
 
 func (m model) View() string {
+
 	doc := strings.Builder{}
 
 	var renderedTabs []string

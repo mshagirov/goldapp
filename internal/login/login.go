@@ -2,33 +2,38 @@ package login
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"golang.org/x/term"
 )
 
 var (
 	focusedColor = lipgloss.AdaptiveColor{Light: "#DAA520", Dark: "#FFD700"} //lipgloss.Color("215")
 	blurredColor = lipgloss.Color("241")
-	focusedStyle = lipgloss.NewStyle().Foreground(focusedColor).
-			PaddingTop(2).PaddingLeft(4)
-	blurredStyle = lipgloss.NewStyle().Foreground(blurredColor).
-			PaddingLeft(4)
 
-	cursorStyle        = focusedStyle
-	noStyle            = lipgloss.NewStyle().PaddingTop(2).PaddingLeft(4)
-	titleText   string = `LDAP Administrator Password`
-	titleSyle          = blurredStyle.PaddingTop(2).Bold(true)
-	helpStyle          = blurredStyle
-	helpText    string = `(press esc or ctrl+c to exit)`
+	focusedStyle = lipgloss.NewStyle().Foreground(focusedColor).PaddingTop(2)
+	blurredStyle = lipgloss.NewStyle().Foreground(blurredColor)
 
-	focusedButton = lipgloss.NewStyle().
-			Foreground(focusedColor).PaddingLeft(4).
-			Render("[ Submit ]")
-	blurredButton = fmt.Sprintf("%s", lipgloss.NewStyle().Foreground(blurredColor).
-			PaddingLeft(4).Render("[ Submit ]"))
+	cursorStyle = focusedStyle
+	noStyle     = lipgloss.NewStyle().PaddingTop(2)
+
+	titleText string = `LDAP Administrator Password`
+	titleSyle        = blurredStyle.Bold(true)
+	helpStyle        = blurredStyle
+	helpText  string = `(press esc or ctrl+c to exit)`
+
+	focusedButton = lipgloss.NewStyle().Foreground(focusedColor).Render("[ Submit ]")
+	blurredButton = fmt.Sprintf("%s", lipgloss.NewStyle().Foreground(blurredColor).Render("[ Submit ]"))
+
+	contentStyle = lipgloss.NewStyle().
+			Align(lipgloss.Left).
+			Padding(1, 2).
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(blurredColor)
 )
 
 type model struct {
@@ -122,6 +127,11 @@ func (m *model) updateInputs(msg tea.Msg) tea.Cmd {
 }
 
 func (m model) View() string {
+	physicalWidth, physicalHeight, err := term.GetSize(int(os.Stdout.Fd()))
+	if err != nil {
+		physicalWidth, physicalHeight = 20, 20
+	}
+
 	var b strings.Builder
 
 	b.WriteString(titleSyle.Render(titleText))
@@ -140,7 +150,17 @@ func (m model) View() string {
 	fmt.Fprintf(&b, "\n\n%s\n\n", *button)
 
 	b.WriteString(helpStyle.Render(helpText))
-	return b.String()
+
+	alignedContents := contentStyle.Render(b.String())
+
+	renderedContent := lipgloss.Place(
+		physicalWidth,
+		physicalHeight,
+		lipgloss.Center, // Horizontal alignment
+		lipgloss.Center, // Vertical alignment
+		alignedContents,
+	)
+	return renderedContent
 }
 
 func Run() (string, error) {

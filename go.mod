@@ -7,6 +7,7 @@ require (
 	github.com/charmbracelet/bubbletea v1.3.10
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/go-ldap/ldap/v3 v3.4.12
+	golang.org/x/term v0.37.0
 )
 
 require (
