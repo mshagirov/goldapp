@@ -28,21 +28,24 @@ func main() {
 		Secret: secret,
 	}
 
-	filters := []string{
-		"PosixAccount",       // all PosixGroups
-		"PosixGroup",         // all PosixGroups
-		"OrganizationalUnit", // ou's
+	filters := []struct {
+		name   string
+		filter string
+	}{
+		{name: "Users", filter: "PosixAccount"},     // all PosixGroups
+		{name: "Groups", filter: "PosixGroup"},      // all PosixGroups
+		{name: "OUs", filter: "OrganizationalUnit"}, // ou's
 	}
 	// "(objectClass=*)" // all classes
 	// "(uid=*)" // all ldap users
 	// "(cn=*)" // all ldap users
 	// fmt.Sprintf("(uid=%s)", "jbourne") // find user
 
-	var contents []string
+	var tabnames, contents []string
 
-	for i, filter := range filters {
-		sr, err := ldap.Search(fmt.Sprintf("(objectClass=%v)", filter))
-
+	for i, f := range filters {
+		sr, err := ldap.Search(fmt.Sprintf("(objectClass=%v)", f.filter))
+		tabnames = append(tabnames, f.name)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -57,12 +60,13 @@ func main() {
 				}
 			}
 		}
+		i++
 	}
 
 	runTabs(
 		// []string{"Users", "Groups", "Orgs"},
 		//[]string{"User1, user2,...", "group1, group2,...", "Managers, Devs"},
-		filters,
+		tabnames,
 		contents,
 	)
 

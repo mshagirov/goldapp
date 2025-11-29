@@ -10,7 +10,7 @@ import (
 )
 
 type Model struct {
-	Tabs       []string
+	TabNames   []string
 	TabContent []string
 	ActiveTab  int
 }
@@ -26,7 +26,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "n", "tab":
-			m.ActiveTab = min(m.ActiveTab+1, len(m.Tabs)-1)
+			m.ActiveTab = min(m.ActiveTab+1, len(m.TabNames)-1)
 			return m, nil
 		case "p", "shift+tab":
 			m.ActiveTab = max(m.ActiveTab-1, 0)
@@ -69,9 +69,9 @@ func (m Model) View() string {
 
 	var renderedTabs []string
 
-	for i, t := range m.Tabs {
+	for i, t := range m.TabNames {
 		var style lipgloss.Style
-		isFirst, isLast, isActive := i == 0, i == len(m.Tabs)-1, i == m.ActiveTab
+		isFirst, isLast, isActive := i == 0, i == len(m.TabNames)-1, i == m.ActiveTab
 		if isActive {
 			style = activeTabStyle
 		} else {

@@ -5,12 +5,12 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
-	tabsModel "github.com/mshagirov/goldap/internal/tabs"
+	"github.com/mshagirov/goldap/internal/tabs"
 )
 
-func runTabs(tabs []string, tabContent []string) {
+func runTabs(tabNames []string, tabContent []string) {
 
-	m := tabsModel.Model{Tabs: tabs, TabContent: tabContent}
+	m := tabs.Model{TabNames: tabNames, TabContent: tabContent}
 	if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
