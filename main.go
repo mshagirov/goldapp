@@ -46,9 +46,10 @@ func main() {
 	var (
 		tabnames []string
 		contents []table.Model
+		dn       [][]string
 	)
 
-	w, h := tabs.GetTabledDimensions()
+	w, h := tabs.GetTableDimensions()
 
 	users := ldap.Users()
 
@@ -62,6 +63,7 @@ func main() {
 		),
 	)
 	tabnames = append(tabnames, "Users")
+	dn = append(dn, users[0].DN)
 
 	contents = append(contents,
 		table.New(table.WithColumns(users[1].Cols),
@@ -73,6 +75,20 @@ func main() {
 		),
 	)
 	tabnames = append(tabnames, "Groups")
+	dn = append(dn, users[1].DN)
 
-	tabs.Run(tabnames, contents)
+	orgUnits := ldap.OUs()
+	contents = append(contents,
+		table.New(table.WithColumns(orgUnits.Cols),
+			table.WithRows(orgUnits.Rows),
+			table.WithFocused(true),
+			table.WithHeight(h),
+			table.WithWidth(w),
+			table.WithStyles(tabs.GetTableStyle()),
+		),
+	)
+	tabnames = append(tabnames, "OrgUnits")
+	dn = append(dn, orgUnits.DN)
+
+	tabs.Run(tabnames, contents, dn)
 }
