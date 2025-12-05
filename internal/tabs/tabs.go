@@ -6,39 +6,80 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/term"
 )
 
 type Model struct {
-	TabNames  []string
-	Tables    []table.Model
-	DN        [][]string
-	ActiveTab int
+	TabNames    []string
+	Tables      []table.Model
+	DN          [][]string
+	ActiveTab   int
+	Searches    map[int]textinput.Model
+	SearchFocus map[int]struct{}
 }
 
 func (m Model) Init() tea.Cmd { return nil }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	_, insearch := m.Searches[m.ActiveTab]
+	_, searchFocus := m.SearchFocus[m.ActiveTab]
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "ctrl+c":
-			return m, tea.Quit
+			if insearch {
+				delete(m.Searches, m.ActiveTab)
+				delete(m.SearchFocus, m.ActiveTab)
+				return m, nil
+			} else {
+				return m, tea.Quit
+			}
+		case "esc":
+			if insearch {
+				delete(m.Searches, m.ActiveTab)
+				delete(m.SearchFocus, m.ActiveTab)
+				return m, nil
+			}
 		case "n", "tab":
-			m.ActiveTab = (m.ActiveTab + 1) % len(m.TabNames)
-			return m, nil
+			if !insearch || !searchFocus || msg.String() != "n" {
+				m.ActiveTab = (m.ActiveTab + 1) % len(m.TabNames)
+				return m, nil
+			}
 		case "p", "shift+tab":
-			m.ActiveTab = (m.ActiveTab - 1 + len(m.TabNames)) % len(m.TabNames)
-			return m, nil
+			if !insearch || !searchFocus || msg.String() != "p" {
+				m.ActiveTab = (m.ActiveTab - 1 + len(m.TabNames)) % len(m.TabNames)
+				return m, nil
+			}
+		case "/":
+			if !insearch {
+				m.Searches[m.ActiveTab] = initialSearch()
+				m.SearchFocus[m.ActiveTab] = struct{}{}
+				return m, nil
+			} else if !searchFocus && insearch {
+				m.SearchFocus[m.ActiveTab] = struct{}{}
+				return m, nil
+			}
+		case "enter":
+			if insearch && searchFocus {
+				delete(m.SearchFocus, m.ActiveTab) // keep search and switch focus to the table
+				return m, nil
+			} else {
+				// expand entry
+			}
 			// case "enter", "l" , "left":
 			//   selected info --> m.Tables[m.ActiveTab].SelectedRow() : 1xN slice/array
 			//   return m, tea.Batch(...)
 		}
 	}
-	m.Tables[m.ActiveTab], cmd = m.Tables[m.ActiveTab].Update(msg)
+	if insearch && searchFocus {
+		m.Searches[m.ActiveTab], cmd = m.Searches[m.ActiveTab].Update(msg)
+	} else {
+		m.Tables[m.ActiveTab], cmd = m.Tables[m.ActiveTab].Update(msg)
+	}
 	return m, cmd
 }
 
@@ -70,6 +111,9 @@ var (
 	infoBarStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.AdaptiveColor{Light: "#3B3B3B", Dark: "#ADADAD"}).
 			Align(lipgloss.Right)
+	searchBarStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#ffffff"}).
+			Align(lipgloss.Left)
 )
 
 func GetTableStyle() table.Styles {
@@ -133,19 +177,26 @@ func (m Model) View() string {
 
 	dn := m.DN[m.ActiveTab][m.Tables[m.ActiveTab].Cursor()]
 
+	var searchField string
+	if s, ok := m.Searches[m.ActiveTab]; ok {
+		searchField = searchBarStyle.Render(fmt.Sprintf("%v", s.View()))
+	}
+
+	dnInfo := infoBarStyle.Width(w - lipgloss.Width(searchField)).Render(fmt.Sprintf("%v", dn))
+	infoBar := lipgloss.JoinHorizontal(lipgloss.Top, searchField, dnInfo)
+
 	doc.WriteString(row)
 	doc.WriteString("\n")
 	doc.WriteString(windowStyle.Width(w).Height(h).
-		Render(m.Tables[m.ActiveTab].View() +
-			infoBarStyle.Width(w).Render(fmt.Sprintf("\n%v", dn))),
+		Render(m.Tables[m.ActiveTab].View() + "\n" + infoBar),
 	)
-
-	out := docStyle.Width(termWidth).Height(h).Render(doc.String())
-	return out
+	return docStyle.Width(termWidth).Height(h).Render(doc.String())
 }
 
 func Run(names []string, tables []table.Model, dn [][]string) {
 	m := Model{TabNames: names, Tables: tables, DN: dn}
+	m.Searches = make(map[int]textinput.Model)
+	m.SearchFocus = make(map[int]struct{})
 	if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
