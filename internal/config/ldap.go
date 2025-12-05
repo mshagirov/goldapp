@@ -50,22 +50,28 @@ func (api *LdapApi) ListOUs() (*ldap.SearchResult, error) {
 	return api.Search(OUsFilter)
 }
 
-func (api *LdapApi) Users() [2]TableInfo {
-	var t [2]TableInfo
-	if usrRes, err := api.ListUsers(); err == nil {
-		LoadTableInfoFromSearchResults(&t[0], UsrCols, UsrAttr, UsrColsWidth, usrRes)
-	}
-
-	if grpRes, err := api.ListGroups(); err == nil {
-		LoadTableInfoFromSearchResults(&t[1], GrpCols, GrpAttr, GrpColsWidth, grpRes)
-	}
-	return t
-}
-
-func (api *LdapApi) OUs() TableInfo {
+func (api *LdapApi) GetTableInfo(s string) TableInfo {
 	var t TableInfo
-	if ouRes, err := api.ListOUs(); err == nil {
-		LoadTableInfoFromSearchResults(&t, OUCols, OUAttr, OUColsWidth, ouRes)
+	switch s {
+	case "Users":
+		if usrRes, err := api.ListUsers(); err == nil {
+			LoadTableInfoFromSearchResults(&t, UsrCols, UsrAttr, UsrColsWidth, usrRes)
+		}
+		return t
+	case "Groups":
+		if grpRes, err := api.ListGroups(); err == nil {
+			LoadTableInfoFromSearchResults(&t, GrpCols, GrpAttr, GrpColsWidth, grpRes)
+		}
+		return t
+	case "OrgUnits":
+		if ouRes, err := api.ListOUs(); err == nil {
+			LoadTableInfoFromSearchResults(&t, OUCols, OUAttr, OUColsWidth, ouRes)
+		}
+		return t
+	default:
+		// if sr, err:= api.Search(s); err == nil {
+		// 	?
+		// }
+		return t
 	}
-	return t
 }

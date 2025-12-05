@@ -6,13 +6,13 @@ const (
 )
 
 var (
-	UsrCols = []string{"Username", "uid", "Name", "Group", "dn"}
+	UsrCols = []string{"Username", "uid", "Name", "Group"}
 	UsrAttr = map[string]string{
 		"uid":       "Username",
 		"uidNumber": "uid",
 		"cn":        "Name",
 		"gidNumber": "Group",
-		"dn":        "dn"}
+	}
 	UsrColsWidth = []int{15, 5, 15, 10, 25}
 
 	GrpCols = []string{"Name", "gid", "dn"}
