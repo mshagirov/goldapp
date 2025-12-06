@@ -64,19 +64,28 @@ func (api *LdapApi) GetTableInfo(s string) (TableInfo, error) {
 	var t TableInfo
 	switch s {
 	case "Users":
-		if usrRes, err := api.ListUsers(); err == nil {
-			LoadTableInfoFromSearchResults(&t, UsrCols, UsrAttr, UsrColsWidth, usrRes)
+		usrRes, err := api.ListUsers()
+		if err != nil {
+			return t, err
 		}
+
+		LoadTableInfoFromSearchResults(&t, UsrCols, UsrAttr, UsrColsWidth, usrRes)
 		return t, nil
 	case "Groups":
-		if grpRes, err := api.ListGroups(); err == nil {
-			LoadTableInfoFromSearchResults(&t, GrpCols, GrpAttr, GrpColsWidth, grpRes)
+		grpRes, err := api.ListGroups()
+		if err != nil {
+			return t, err
 		}
+
+		LoadTableInfoFromSearchResults(&t, GrpCols, GrpAttr, GrpColsWidth, grpRes)
 		return t, nil
 	case "OrgUnits":
-		if ouRes, err := api.ListOUs(); err == nil {
-			LoadTableInfoFromSearchResults(&t, OUCols, OUAttr, OUColsWidth, ouRes)
+		ouRes, err := api.ListOUs()
+		if err != nil {
+			return t, err
 		}
+
+		LoadTableInfoFromSearchResults(&t, OUCols, OUAttr, OUColsWidth, ouRes)
 		return t, nil
 	default:
 		return t, fmt.Errorf("LdapApi.GetTableInfo: the input '%v' value not recognised", s)
