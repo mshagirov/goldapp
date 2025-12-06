@@ -23,6 +23,8 @@ objectClass: top
 objectClass: posixGroup
 description: POSIX group for managers
 gidNumber: 100
+memberUid: aburgers
+memberUid: jmkane
 
 # test POSIX Group 2
 dn: cn=Users,ou=Group,dc=goldap,dc=sh
@@ -32,4 +34,6 @@ objectClass: top
 objectClass: posixGroup
 description: Users posix group
 gidNumber: 1000
+memberUid: jsmith1
+memberUid: jbourne 
 

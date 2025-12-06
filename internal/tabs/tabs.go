@@ -37,11 +37,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
-		case "ctrl+c":
-			if insearch {
+		case "ctrl+c", "q":
+			if insearch && msg.String() != "q" {
 				delete(m.Searches, m.ActiveTab)
 				return m, nil
-			} else {
+			} else if !searchFocus {
 				return m, tea.Quit
 			}
 		case "esc":

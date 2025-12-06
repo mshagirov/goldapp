@@ -53,7 +53,7 @@ func LoadTableInfoFromSearchResults(
 			}
 			id := colIds[colAtrr[attr.Name]]
 			if len(attr.Values) > 1 {
-				row_i[id] = strings.Join(attr.Values, "; ")
+				row_i[id] = strings.Join(attr.Values, ", ")
 			} else {
 				row_i[id] = attr.Values[0]
 			}
