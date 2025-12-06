@@ -42,12 +42,29 @@ objectClass: inetOrgPerson
 objectClass: top
 employeeType: Full-time
 cn: Jason Bourne
-description: Jason Bourne from Dev team.  Jason is a software
-  engineer. He could be a spy ... we don't really know.
+description: Jason Bourne is a security consultant for the Dev team.
 givenName: Jason
 mail: jbourne@goldap.sh
 sn: Bourne
-uidNumber: 1000
+uidNumber: 1001
 gidNumber: 1000
 homeDirectory: /home/jbourne
 uid: jbourne
+
+# test POSIX user 4
+dn: uid=jmkane,ou=Devs,ou=People,dc=goldap,dc=sh
+changetype: add
+objectClass: posixAccount
+objectClass: inetOrgPerson
+objectClass: top
+employeeType: Full-time
+cn: John Michael Kane
+description: John is ex-yacht salesman. Jason's cousin.
+givenName: John Michael
+mail: jmkane@goldap.sh
+sn: Kane
+uidNumber: 1002
+gidNumber: 100
+homeDirectory: /home/jmkane
+uid: jmkane
+
