@@ -1,6 +1,7 @@
 package ldapapi
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -37,12 +38,13 @@ func LoadTableInfoFromSearchResults(
 	sr *ldap.SearchResult,
 ) {
 	colIds := ToIdMap(colNames)
-	ti.Cols = MakeColumns(colNames, widths)
+	ti.Cols = MakeColumns(append([]string{""}, colNames...), append([]int{4}, widths...))
 	ti.Rows = []table.Row{}
 	ti.DN = []string{}
 
-	for _, entry := range sr.Entries {
-		row_i := make([]string, len(colNames))
+	for i, entry := range sr.Entries {
+		row_i := make([]string, len(colNames)+1)
+		row_i[0] = fmt.Sprintf("%v", i+1)
 		if val, ok := colAtrr["dn"]; ok {
 			row_i[colIds[val]] = entry.DN
 		}
@@ -53,9 +55,9 @@ func LoadTableInfoFromSearchResults(
 			}
 			id := colIds[colAtrr[attr.Name]]
 			if len(attr.Values) > 1 {
-				row_i[id] = strings.Join(attr.Values, ", ")
+				row_i[id+1] = strings.Join(attr.Values, ", ")
 			} else {
-				row_i[id] = attr.Values[0]
+				row_i[id+1] = attr.Values[0]
 			}
 		}
 		ti.Rows = append(ti.Rows, row_i)

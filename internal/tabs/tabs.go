@@ -3,6 +3,7 @@ package tabs
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/table"
@@ -10,84 +11,9 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"golang.org/x/term"
+
+	"github.com/mshagirov/goldap/ldapapi"
 )
-
-type Model struct {
-	TabNames  []string
-	Tables    []table.Model
-	DN        [][]string
-	ActiveTab int
-	Searches  map[int]textinput.Model
-}
-
-func (m Model) Init() tea.Cmd { return nil }
-
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-
-	_, insearch := m.Searches[m.ActiveTab]
-
-	var searchFocus bool
-	if insearch {
-		searchFocus = m.Searches[m.ActiveTab].Focused()
-	} else {
-		searchFocus = false
-	}
-
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch keypress := msg.String(); keypress {
-		case "ctrl+c", "q":
-			if insearch && msg.String() != "q" {
-				delete(m.Searches, m.ActiveTab)
-				return m, nil
-			} else if !searchFocus {
-				return m, tea.Quit
-			}
-		case "esc":
-			if insearch {
-				delete(m.Searches, m.ActiveTab)
-				return m, nil
-			}
-		case "n", "tab":
-			if !insearch || !searchFocus || msg.String() != "n" {
-				m.ActiveTab = (m.ActiveTab + 1) % len(m.TabNames)
-				return m, nil
-			}
-		case "p", "shift+tab":
-			if !insearch || !searchFocus || msg.String() != "p" {
-				m.ActiveTab = (m.ActiveTab - 1 + len(m.TabNames)) % len(m.TabNames)
-				return m, nil
-			}
-		case "/":
-			if !insearch {
-				m.Searches[m.ActiveTab] = initialSearch()
-				return m, nil
-			} else if !searchFocus && insearch {
-				ti := m.Searches[m.ActiveTab]
-				cmd = ti.Focus()
-				m.Searches[m.ActiveTab] = ti
-				return m, cmd
-			}
-		case "enter":
-			if insearch && searchFocus {
-				ti := m.Searches[m.ActiveTab]
-				ti.Blur()
-				m.Searches[m.ActiveTab] = ti
-				return m, nil
-			} else {
-				// expand entry
-				// search entry disabled
-			}
-		}
-	}
-	if insearch && searchFocus {
-		m.Searches[m.ActiveTab], cmd = m.Searches[m.ActiveTab].Update(msg)
-	} else {
-		m.Tables[m.ActiveTab], cmd = m.Tables[m.ActiveTab].Update(msg)
-	}
-	return m, cmd
-}
 
 func tabBorderWithBottom(left, middle, right string) lipgloss.Border {
 	border := lipgloss.RoundedBorder()
@@ -122,21 +48,114 @@ var (
 			Align(lipgloss.Left)
 )
 
-func GetTableStyle() table.Styles {
-	s := table.DefaultStyles()
-	hlColor := lipgloss.AdaptiveColor{Light: "#0014a8", Dark: "#265ef7"}
-	s.Header = s.Header.Foreground(hlColor)
-	s.Selected = s.Selected.Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#ffffff"}).Background(hlColor)
-	return s
+type Model struct {
+	TabNames    []string
+	Contents    []ldapapi.TableInfo
+	DN          [][]string
+	ActiveTable table.Model
+	ActiveRows  []int
+	ActiveTab   int
+	Searches    map[int]textinput.Model
 }
 
-func GetTableDimensions() (int, int) {
-	termWidth, termHeight, err := term.GetSize(int(os.Stdout.Fd()))
+func (m Model) Init() tea.Cmd { return nil }
+
+func (m Model) CurrentRowId() int {
+	rowId, err := strconv.Atoi(m.ActiveTable.SelectedRow()[0])
 	if err != nil {
-		termWidth, termHeight = 20, 20
+		return 0
 	}
-	w, h := windowStyle.GetHorizontalFrameSize(), windowStyle.GetVerticalFrameSize()
-	return (termWidth - w), (termHeight - 6*h)
+	return rowId
+}
+
+func (m Model) CurrentDN() string {
+	rowId := m.CurrentRowId()
+	if (rowId) > len(m.DN[m.ActiveTab]) {
+		return fmt.Sprintf("row %v is out of range", rowId+1)
+	}
+	return m.DN[m.ActiveTab][rowId-1]
+}
+
+func (m Model) NextTab() (tea.Model, tea.Cmd) {
+	m.ActiveRows[m.ActiveTab] = m.ActiveTable.Cursor()
+	// next tab
+	m.ActiveTab = (m.ActiveTab + 1) % len(m.TabNames)
+	m.ActiveTable = NewTable(m.Contents[m.ActiveTab])
+	m.ActiveTable.SetCursor(m.ActiveRows[m.ActiveTab])
+	return m, nil
+}
+
+func (m Model) PrevTab() (tea.Model, tea.Cmd) {
+	m.ActiveTab = (m.ActiveTab - 1 + len(m.TabNames)) % len(m.TabNames)
+	m.ActiveTable = NewTable(m.Contents[m.ActiveTab])
+	return m, nil
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	_, insearch := m.Searches[m.ActiveTab]
+
+	var searchFocus bool
+	if insearch {
+		searchFocus = m.Searches[m.ActiveTab].Focused()
+	} else {
+		searchFocus = false
+	}
+
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch keypress := msg.String(); keypress {
+		case "ctrl+c", "q":
+			if insearch && msg.String() != "q" {
+				delete(m.Searches, m.ActiveTab)
+				return m, nil
+			} else if !searchFocus {
+				return m, tea.Quit
+			}
+		case "esc":
+			if insearch {
+				delete(m.Searches, m.ActiveTab)
+				return m, nil
+			}
+		case "n", "tab":
+			if !insearch || !searchFocus || msg.String() != "n" {
+				m, cmd := m.NextTab()
+				return m, cmd
+			}
+		case "p", "shift+tab":
+			if !insearch || !searchFocus || msg.String() != "p" {
+				m, cmd := m.PrevTab()
+				return m, cmd
+			}
+		case "/":
+			if !insearch {
+				m.Searches[m.ActiveTab] = initialSearch()
+				return m, nil
+			} else if !searchFocus && insearch {
+				ti := m.Searches[m.ActiveTab]
+				cmd = ti.Focus()
+				m.Searches[m.ActiveTab] = ti
+				return m, cmd
+			}
+		case "enter":
+			if insearch && searchFocus {
+				ti := m.Searches[m.ActiveTab]
+				ti.Blur()
+				m.Searches[m.ActiveTab] = ti
+				return m, nil
+			} else {
+				// expand entry
+				// search entry disabled
+			}
+		}
+	}
+	if insearch && searchFocus {
+		m.Searches[m.ActiveTab], cmd = m.Searches[m.ActiveTab].Update(msg)
+	} else {
+		m.ActiveTable, cmd = m.ActiveTable.Update(msg)
+	}
+	return m, cmd
 }
 
 func (m Model) View() string {
@@ -178,10 +197,10 @@ func (m Model) View() string {
 	}
 
 	w, h := GetTableDimensions()
-	m.Tables[m.ActiveTab].SetWidth(w)
-	m.Tables[m.ActiveTab].SetHeight(h)
+	m.ActiveTable.SetWidth(w)
+	m.ActiveTable.SetHeight(h)
 
-	dn := m.DN[m.ActiveTab][m.Tables[m.ActiveTab].Cursor()]
+	dn := m.CurrentDN()
 
 	var searchField string
 	if s, ok := m.Searches[m.ActiveTab]; ok {
@@ -194,14 +213,18 @@ func (m Model) View() string {
 	doc.WriteString(row)
 	doc.WriteString("\n")
 	doc.WriteString(windowStyle.Width(w).Height(h).
-		Render(m.Tables[m.ActiveTab].View() + "\n" + infoBar),
+		Render(m.ActiveTable.View() + "\n" + infoBar),
 	)
 	return docStyle.Width(termWidth).Height(h).Render(doc.String())
 }
 
-func Run(names []string, tables []table.Model, dn [][]string) {
-	m := Model{TabNames: names, Tables: tables, DN: dn}
-	m.Searches = make(map[int]textinput.Model)
+func Run(names []string, contents []ldapapi.TableInfo, dn [][]string) {
+	m := Model{TabNames: names, Contents: contents, DN: dn}
+
+	m.Searches = make(map[int]textinput.Model, len(names))
+	m.ActiveTable = NewTable(contents[0])
+	m.ActiveRows = make([]int, len(names))
+
 	if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)

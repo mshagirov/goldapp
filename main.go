@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/charmbracelet/bubbles/table"
 	"github.com/mshagirov/goldap/internal/config"
 	"github.com/mshagirov/goldap/internal/login"
 	"github.com/mshagirov/goldap/internal/tabs"
@@ -38,23 +37,13 @@ func main() {
 
 	var (
 		tabnames = []string{"Users", "Groups", "OrgUnits"}
-		contents []table.Model
+		contents []ldapapi.TableInfo
 		dn       [][]string
 	)
 
-	w, h := tabs.GetTableDimensions()
-
 	for _, tabName := range tabnames {
 		t, _ := ldap.GetTableInfo(tabName)
-		contents = append(contents,
-			table.New(table.WithColumns(t.Cols),
-				table.WithRows(t.Rows),
-				table.WithFocused(true),
-				table.WithHeight(h),
-				table.WithWidth(w),
-				table.WithStyles(tabs.GetTableStyle()),
-			),
-		)
+		contents = append(contents, t)
 		dn = append(dn, t.DN)
 	}
 
