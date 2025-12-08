@@ -46,7 +46,7 @@ func LoadTableInfoFromSearchResults(
 		row_i := make([]string, len(colNames)+1)
 		row_i[0] = fmt.Sprintf("%v", i+1)
 		if val, ok := colAtrr["dn"]; ok {
-			row_i[colIds[val]] = entry.DN
+			row_i[colIds[val]+1] = entry.DN
 		}
 		for _, attr := range entry.Attributes {
 			_, ok := colAtrr[attr.Name]

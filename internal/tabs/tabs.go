@@ -86,8 +86,11 @@ func (m Model) NextTab() (tea.Model, tea.Cmd) {
 }
 
 func (m Model) PrevTab() (tea.Model, tea.Cmd) {
+	m.ActiveRows[m.ActiveTab] = m.ActiveTable.Cursor()
+	// previous tab
 	m.ActiveTab = (m.ActiveTab - 1 + len(m.TabNames)) % len(m.TabNames)
 	m.ActiveTable = NewTable(m.Contents[m.ActiveTab])
+	m.ActiveTable.SetCursor(m.ActiveRows[m.ActiveTab])
 	return m, nil
 }
 
