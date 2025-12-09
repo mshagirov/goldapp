@@ -76,7 +76,7 @@ func (m Model) CurrentDN() string {
 	return m.DN[m.ActiveTab][rowId-1]
 }
 
-func (m Model) NextTab() (tea.Model, tea.Cmd) {
+func (m *Model) nextTab() (tea.Model, tea.Cmd) {
 	m.ActiveRows[m.ActiveTab] = m.ActiveTable.Cursor()
 	// next tab
 	m.ActiveTab = (m.ActiveTab + 1) % len(m.TabNames)
@@ -85,7 +85,7 @@ func (m Model) NextTab() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) PrevTab() (tea.Model, tea.Cmd) {
+func (m *Model) prevTab() (tea.Model, tea.Cmd) {
 	m.ActiveRows[m.ActiveTab] = m.ActiveTable.Cursor()
 	// previous tab
 	m.ActiveTab = (m.ActiveTab - 1 + len(m.TabNames)) % len(m.TabNames)
@@ -94,9 +94,7 @@ func (m Model) PrevTab() (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-
+func (m Model) getSearchState() (bool, bool) {
 	_, insearch := m.Searches[m.ActiveTab]
 
 	var searchFocus bool
@@ -105,56 +103,73 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	} else {
 		searchFocus = false
 	}
+	return insearch, searchFocus
+}
+
+func (m *Model) startSearch(insearch bool) (tea.Model, tea.Cmd) {
+	if !insearch {
+		m.Searches[m.ActiveTab] = initialSearch()
+		return m, nil
+	}
+	ti := m.Searches[m.ActiveTab]
+	cmd := ti.Focus()
+	m.Searches[m.ActiveTab] = ti
+	return m, cmd
+}
+
+func (m *Model) blurSearch() (tea.Model, tea.Cmd) {
+	ti := m.Searches[m.ActiveTab]
+	ti.Blur()
+	m.Searches[m.ActiveTab] = ti
+	return m, nil
+}
+
+func (m *Model) stopSearch() (tea.Model, tea.Cmd) {
+	delete(m.Searches, m.ActiveTab)
+	return m, nil
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+
+	insearch, searchFocus := m.getSearchState()
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 		case "ctrl+c", "q":
 			if insearch && msg.String() != "q" {
-				delete(m.Searches, m.ActiveTab)
-				return m, nil
+				return m.stopSearch()
 			} else if !searchFocus {
 				return m, tea.Quit
 			}
 		case "esc":
 			if insearch {
-				delete(m.Searches, m.ActiveTab)
-				return m, nil
+				return m.stopSearch()
 			}
 		case "n", "tab":
 			if !insearch || !searchFocus || msg.String() != "n" {
-				m, cmd := m.NextTab()
-				return m, cmd
+				return m.nextTab()
 			}
 		case "p", "shift+tab":
 			if !insearch || !searchFocus || msg.String() != "p" {
-				m, cmd := m.PrevTab()
-				return m, cmd
+				return m.prevTab()
 			}
 		case "/":
-			if !insearch {
-				m.Searches[m.ActiveTab] = initialSearch()
-				return m, nil
-			} else if !searchFocus && insearch {
-				ti := m.Searches[m.ActiveTab]
-				cmd = ti.Focus()
-				m.Searches[m.ActiveTab] = ti
-				return m, cmd
+			if !insearch || !searchFocus {
+				return m.startSearch(insearch)
 			}
 		case "enter":
 			if insearch && searchFocus {
-				ti := m.Searches[m.ActiveTab]
-				ti.Blur()
-				m.Searches[m.ActiveTab] = ti
-				return m, nil
+				return m.blurSearch()
 			} else {
 				// expand entry
-				// search entry disabled
 			}
 		}
 	}
 	if insearch && searchFocus {
 		m.Searches[m.ActiveTab], cmd = m.Searches[m.ActiveTab].Update(msg)
+		// apply search filter
 	} else {
 		m.ActiveTable, cmd = m.ActiveTable.Update(msg)
 	}
