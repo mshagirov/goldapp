@@ -28,13 +28,6 @@ func main() {
 		Secret: secret,
 	}
 
-	if err := ldap.TryConnecting(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	// "(objectClass=*)" // all classes
-
 	var (
 		tabnames = []string{"Users", "Groups", "OrgUnits"}
 		contents []ldapapi.TableInfo
@@ -42,7 +35,11 @@ func main() {
 	)
 
 	for _, tabName := range tabnames {
-		t, _ := ldap.GetTableInfo(tabName)
+		t, err := ldap.GetTableInfo(tabName)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		contents = append(contents, t)
 		dn = append(dn, t.DN)
 	}
