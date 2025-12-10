@@ -189,7 +189,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if insearch && searchFocus {
 		m.Searches[m.ActiveTab], cmd = m.Searches[m.ActiveTab].Update(msg)
 		m.ActiveTable = newTableWithFilter(m.Contents[m.ActiveTab], m.Searches[m.ActiveTab].Value())
-		// apply search filter
 	} else {
 		m.ActiveTable, cmd = m.ActiveTable.Update(msg)
 	}

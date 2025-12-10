@@ -44,6 +44,7 @@ func newTableWithFilter(ti ldapapi.TableInfo, filter string) table.Model {
 		for _, col := range row {
 			if strings.Contains(strings.ToLower(col), filter) {
 				contains = true
+				break
 			}
 		}
 		if contains {
